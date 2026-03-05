@@ -24,18 +24,13 @@ import com.golapp.truster.model.TrusterViewModel
 import com.golapp.truster.ui.widgets.CustomText
 
 @Composable
-fun MainScreen(vm: TrusterViewModel, openBS: () -> Unit) {
+fun MainScreen(vm: TrusterViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        CustomText(
-            text = "debug adding",
-            modifier = Modifier
-                .clickable(indication = null, interactionSource = MutableInteractionSource()) { openBS() }
-        )
         Column(
             Modifier
                 .height(200.dp)
@@ -50,7 +45,7 @@ fun MainScreen(vm: TrusterViewModel, openBS: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(3.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            vm.state.inventory.keys.forEach { item ->
+            vm.state.inventory.keys.sortedBy { it.title }.forEach { item ->
                 val count = vm.state.inventory[item] ?: 0
                 val text = getItemText(item, count)
                 CustomText(text, modifier = Modifier.clickable {

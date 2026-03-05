@@ -39,10 +39,14 @@ enum class WeaponType {
     RangeOneHand, RangeTwoHand
 }
 
+enum class PotionType {
+    Health, Stamina
+}
+
 sealed interface ItemType {
     data object Gold: ItemType
     data class Food(val restoreAmount: Int, val foodType: FoodType): ItemType
+    data class Potion(val restoreAmount: Int, val potionType: PotionType): ItemType
     data class Armor(val durability: Durability, val stat: ArmorStat): ItemType
     data class Weapon(val durability: Durability, val stat: WeaponStat): ItemType
-    data class Potion(val durability: Durability, val defence: Int): ItemType
 }

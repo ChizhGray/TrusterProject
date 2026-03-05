@@ -6,7 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +36,7 @@ import com.golapp.truster.data.Prefabs
 import com.golapp.truster.model.TrusterViewModel
 import com.golapp.truster.ui.MainScreen
 import com.golapp.truster.ui.theme.TrusterTheme
+import com.golapp.truster.ui.widgets.CharacterStats
 import com.golapp.truster.ui.widgets.CustomButton
 import com.golapp.truster.ui.widgets.CustomText
 import kotlinx.coroutines.launch
@@ -52,17 +55,25 @@ class MainActivity : ComponentActivity() {
                     contentColor = Color.Unspecified,
                     containerColor = Color.Unspecified,
                     sheetContentColor = Color.Unspecified,
-                    sheetContainerColor = Color.Unspecified,
+                    sheetContainerColor = Color.Gray,
                     sheetPeekHeight = 0.dp,
                     content = {
-                        Column(
+                        Box(
                             Modifier
                                 .padding(20.dp)
                                 .systemBarsPadding()
                         ) {
-                            MainScreen(
-                                vm = vm,
-                                openBS = { uiScope.launch { debugSheetState.bottomSheetState.expand() } }
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                CharacterStats(stats = vm.state.character)
+                                MainScreen(vm = vm)
+                            }
+                            CustomText(
+                                text = "debug adding",
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .clickable(indication = null, interactionSource = MutableInteractionSource()) {
+                                        uiScope.launch { debugSheetState.bottomSheetState.expand() }
+                                    }
                             )
                         }
                     },
@@ -73,11 +84,11 @@ class MainActivity : ComponentActivity() {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
-                            listOf(Prefabs.Branch.item, Prefabs.Bread.item, Prefabs.Water.item).forEach { item ->
+                            Prefabs.entries.forEach { prefab ->
                                 Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                     repeat(3) { time ->
-                                        CustomButton("${item.title}+${time}", modifier = Modifier.width(80.dp)) {
-                                            vm.addItemToInventory(item, time)
+                                        CustomButton("${prefab.item.title}+${time}", modifier = Modifier.width(80.dp)) {
+                                            vm.addItemToInventory(prefab.item, time)
                                         }
                                     }
                                 }

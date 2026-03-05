@@ -7,8 +7,20 @@ enum class Prefabs(val item: InventoryItem) {
             ItemType.Weapon(
                 Durability(10, 10),
                 WeaponStat(
-                    WeaponType.RangeOneHand,
-                    5
+                    WeaponType.MeleeOneHand,
+                    3
+                )
+            )
+        )
+    ),
+    Stone(
+        InventoryItem(
+            "Stone",
+            ItemType.Weapon(
+                Durability(10, 10),
+                WeaponStat(
+                    WeaponType.MeleeOneHand,
+                    4
                 )
             )
         )
@@ -31,4 +43,22 @@ enum class Prefabs(val item: InventoryItem) {
             )
         )
     ),
+    HP(
+        InventoryItem(
+            "HP",
+            ItemType.Potion(
+                15,
+                PotionType.Health
+            )
+        )
+    ),
+    SP(
+        InventoryItem(
+            "SP",
+            ItemType.Potion(
+                15,
+                PotionType.Stamina
+            )
+        )
+    )
 }
