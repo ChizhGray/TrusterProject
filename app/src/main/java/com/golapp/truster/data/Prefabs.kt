@@ -1,11 +1,11 @@
-package com.golapp.truster
+package com.golapp.truster.data
 
 enum class Prefabs(val item: InventoryItem) {
-    Pistol(
+    Branch(
         InventoryItem(
-            "Pistol",
+            "Branch",
             ItemType.Weapon(
-                Durability(5, 5),
+                Durability(50, 50),
                 WeaponStat(
                     WeaponType.RangeOneHand,
                     5

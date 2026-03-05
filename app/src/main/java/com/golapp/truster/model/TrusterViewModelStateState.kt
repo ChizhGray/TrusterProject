@@ -1,6 +1,6 @@
-package com.golapp.truster.functions
+package com.golapp.truster.model
 
-import com.golapp.truster.InventoryItem
+import com.golapp.truster.data.InventoryItem
 
 data class TrusterViewModelStateState(
     val inventory: Map<InventoryItem, Int>,
