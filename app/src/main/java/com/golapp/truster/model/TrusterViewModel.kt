@@ -17,7 +17,7 @@ class TrusterViewModel: ViewModel() {
     fun showMessage(text: String) {
         reduce { it.copy(mainText = it.mainText.plus(text)) }
         viewModelScope.launch {
-            delay(2000)
+            delay(3000)
             removeFirstMessage()
         }
     }
@@ -33,7 +33,7 @@ class TrusterViewModel: ViewModel() {
         reduce { it.copy(mainText = newList) }
     }
 
-    fun addItemToInventory(item: InventoryItem, count: Int) {
+    fun addItemToInventory(item: InventoryItem, count: Int, silent: Boolean = false) {
         if (count<=0) { showMessage("count<=0"); return }
         if (state.inventory.keys.contains(item)) {
             val newInventory = state.inventory.mapValues { (inventoryItem, inventoryItemCount) ->
@@ -45,11 +45,11 @@ class TrusterViewModel: ViewModel() {
             val newInventory = state.inventory.plus(item to count)
             reduce { it.copy(inventory = newInventory) }
         }
-        showMessage("added ${item.title} ($count)")
+        if (!silent) showMessage("added ${item.title} ($count)")
         Log.i("addItemToInventory", state.getInventoryTexted())
     }
 
-    fun removeItemFromInventory(item: InventoryItem, count: Int) {
+    fun removeItemFromInventory(item: InventoryItem, count: Int, silent: Boolean = false) {
         if (count<=0) { showMessage("count<=0"); return }
         if (state.inventory.keys.contains(item)) {
             val itemCount = state.inventory[item]!!
@@ -59,11 +59,11 @@ class TrusterViewModel: ViewModel() {
                     else inventoryItemCount
                 }
                 reduce { it.copy(inventory = newInventory) }
-                showMessage("removed 1 ${item.title}")
+                if (!silent) showMessage("removed 1 ${item.title}")
             } else {
                 val newInventory = state.inventory.minus(item)
                 reduce { it.copy(inventory = newInventory) }
-                showMessage("removed last ${item.title}")
+                if (!silent) showMessage("removed last ${item.title}")
             }
         } else showMessage("no items!")
         Log.i("removeItemFromInventory", state.getInventoryTexted())
@@ -79,8 +79,9 @@ class TrusterViewModel: ViewModel() {
                 val newItem = item.copy(type = type.copy(durability = type.durability.copy(
                     current = type.durability.current-1
                 )))
-                addItemToInventory(newItem, 1)
-                removeItemFromInventory(item, 1)
+                if (type.durability.current > 1) addItemToInventory(newItem, 1, true)
+                removeItemFromInventory(item, 1, true)
+                showMessage("used: ${item.title}")
             }
         }
     }

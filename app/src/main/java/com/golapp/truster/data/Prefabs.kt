@@ -5,7 +5,7 @@ enum class Prefabs(val item: InventoryItem) {
         InventoryItem(
             "Branch",
             ItemType.Weapon(
-                Durability(50, 50),
+                Durability(10, 10),
                 WeaponStat(
                     WeaponType.RangeOneHand,
                     5
