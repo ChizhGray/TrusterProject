@@ -39,6 +39,7 @@ import com.golapp.truster.ui.theme.TrusterTheme
 import com.golapp.truster.ui.widgets.CharacterStats
 import com.golapp.truster.ui.widgets.CustomButton
 import com.golapp.truster.ui.widgets.CustomText
+import com.golapp.truster.ui.widgets.ProgressBarItem
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -64,14 +65,21 @@ class MainActivity : ComponentActivity() {
                                 .systemBarsPadding()
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                CharacterStats(stats = vm.state.character)
+                                Row() {
+                                    CharacterStats(stats = vm.state.character)
+                                    Column() {
+                                        Text("Enemy")
+                                        ProgressBarItem(vm.state.enemyHP, Color.Red.copy(alpha = .5f),
+                                            Modifier.fillMaxWidth(.3f))
+                                    }
+                                }
                                 MainScreen(vm = vm)
                             }
                             CustomText(
                                 text = "debug adding",
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .clickable(indication = null, interactionSource = MutableInteractionSource()) {
+                                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() } ) {
                                         uiScope.launch { debugSheetState.bottomSheetState.expand() }
                                     }
                             )

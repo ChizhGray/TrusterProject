@@ -2,7 +2,8 @@ package com.golapp.truster.data
 
 data class InventoryItem(
     val title: String,
-    val type: ItemType
+    val type: ItemType,
+    val description: String
 )
 
 data class Durability(
@@ -18,6 +19,11 @@ enum class FoodType {
     Eat, Drink
 }
 
+data class FoodStat(
+    val restoreAmount: Int,
+    val foodType: FoodType
+)
+
 enum class BodyType {
     Head, Body,
     ArmLeft, ArmRight,
@@ -26,12 +32,15 @@ enum class BodyType {
 
 data class ArmorStat(
     val bodyType: BodyType,
+    val durability: Durability,
     val defence: Map<BodyType, Int>
 )
 
 data class WeaponStat(
     val weaponType: WeaponType,
-    val attack: Int
+    val durability: Durability,
+    val attack: Int,
+    val stamina: Int
 )
 
 enum class WeaponType {
@@ -39,14 +48,21 @@ enum class WeaponType {
     RangeOneHand, RangeTwoHand
 }
 
+data class PotionStat(
+    val restoreAmount: Int,
+    val potionType: PotionType
+)
+
 enum class PotionType {
     Health, Stamina
 }
 
+
+
 sealed interface ItemType {
     data object Gold: ItemType
-    data class Food(val restoreAmount: Int, val foodType: FoodType): ItemType
-    data class Potion(val restoreAmount: Int, val potionType: PotionType): ItemType
-    data class Armor(val durability: Durability, val stat: ArmorStat): ItemType
-    data class Weapon(val durability: Durability, val stat: WeaponStat): ItemType
+    data class Food(val stat: FoodStat): ItemType
+    data class Potion(val stat: PotionStat): ItemType
+    data class Armor(val stat: ArmorStat): ItemType
+    data class Weapon(val stat: WeaponStat): ItemType
 }

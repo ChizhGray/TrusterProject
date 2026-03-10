@@ -10,7 +10,8 @@ data class TrusterViewModelStateState(
     val gameRunning: Boolean,
     val character: CharacterData,
     val inventory: Map<InventoryItem, Int>,
-    val mainText: List<String>
+    val mainText: List<String>,
+    val enemyHP: Durability
 ) {
     fun getInventoryTexted(): String {
         return if (inventory.isEmpty()) "inventory is empty"
@@ -27,7 +28,8 @@ data class TrusterViewModelStateState(
                 hunger = CharacterStat("hunger", Color.Green.copy(alpha = .3f),Durability(50, 100)),
                 trist = CharacterStat("trist", Color.Blue.copy(alpha = .5f),Durability(50, 100)),
                 exp = CharacterStat("exp", Color.Gray.copy(alpha = .8f),Durability(0, 1000))
-            )
+            ),
+            enemyHP = Durability(100, 100)
         )
     }
 }

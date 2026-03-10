@@ -23,11 +23,11 @@ class TrusterViewModel: ViewModel() {
     }
     init {
         Prefabs.entries.forEach { prefab ->
-            addItemToInventory(prefab.item, 1)
+            addItemToInventory(prefab.item, 1, true)
         }
     }
 
-    fun statTick(trist: Int, hunger: Int) {
+    fun statTick(trist: Int, hunger: Int, enemyAttack: Int) {
         val calcTrist = state.character.trist.value.current-trist
         val tristToReduce = if (calcTrist <= 0) 0 else calcTrist
 
@@ -45,13 +45,13 @@ class TrusterViewModel: ViewModel() {
 
         val healthByHungerNew = if (hungerToReduce == 0) 2 else 0
         val healthByTristNew = if (tristToReduce == 0) 5 else 0
-        val healthToReduceTotal = healthByTristNew + healthByHungerNew
+        val healthToReduceTotal = healthByTristNew + healthByHungerNew + enemyAttack
 
         if (healthToReduceTotal!=0) {
             reduce {
                 it.copy(
                     character = it.character.copy(
-                        health = it.character.health.copy(value = it.character.health.value.copy(current = it.character.health.value.current - healthToReduceTotal ))
+                        health = it.character.health.copy(value = it.character.health.value.copy(current = it.character.health.value.current - healthToReduceTotal))
                     )
                 )
             }
@@ -60,7 +60,7 @@ class TrusterViewModel: ViewModel() {
 
     fun removeFirstMessage() {
         val newList = state.mainText.toMutableList().ifEmpty { return }
-        newList.removeFirst()
+        newList.remove(newList[0])
         reduce { it.copy(mainText = newList) }
     }
 
@@ -106,15 +106,15 @@ class TrusterViewModel: ViewModel() {
                 showMessage("not usable!: ${item.title}")
             }
             is ItemType.Food -> {
-                when(type.foodType) {
+                when(type.stat.foodType) {
                     FoodType.Eat -> reduce {
-                        val valueToReduce = state.character.hunger.value.current+type.restoreAmount
+                        val valueToReduce = state.character.hunger.value.current+type.stat.restoreAmount
                         it.copy(character = state.character.copy(hunger = state.character.hunger.copy(value = state.character.hunger.value.copy(
                             current = if (valueToReduce>state.character.hunger.value.max) state.character.hunger.value.max else valueToReduce
                         ))))
                     }
                     FoodType.Drink -> reduce {
-                        val valueToReduce = state.character.trist.value.current+type.restoreAmount
+                        val valueToReduce = state.character.trist.value.current+type.stat.restoreAmount
                         it.copy(character = state.character.copy(trist = state.character.trist.copy(value = state.character.trist.value.copy(
                             current = if (valueToReduce>state.character.trist.value.max) state.character.trist.value.max else valueToReduce
                         ))))
@@ -127,15 +127,15 @@ class TrusterViewModel: ViewModel() {
                 showMessage("not usable!: ${item.title}")
             }
             is ItemType.Potion -> {
-                when(type.potionType) {
+                when(type.stat.potionType) {
                     PotionType.Health -> reduce {
-                        val valueToReduce = state.character.health.value.current+type.restoreAmount
+                        val valueToReduce = state.character.health.value.current+type.stat.restoreAmount
                         it.copy(character = state.character.copy(health = state.character.health.copy(value = state.character.health.value.copy(
                             current = if (valueToReduce>state.character.health.value.max) state.character.health.value.max else valueToReduce
                         ))))
                     }
                     PotionType.Stamina -> reduce {
-                        val valueToReduce = state.character.stamina.value.current+type.restoreAmount
+                        val valueToReduce = state.character.stamina.value.current+type.stat.restoreAmount
                         it.copy(character = state.character.copy(stamina = state.character.stamina.copy(value = state.character.stamina.value.copy(
                             current = if (valueToReduce>state.character.stamina.value.max) state.character.stamina.value.max else valueToReduce
                         ))))
@@ -145,12 +145,50 @@ class TrusterViewModel: ViewModel() {
                 showMessage("used: ${item.title}")
             }
             is ItemType.Weapon -> {
-                val newItem = item.copy(type = type.copy(durability = type.durability.copy(current = type.durability.current-1)))
-                if (type.durability.current > 1) addItemToInventory(newItem, 1, true)
-                removeItemFromInventory(item, 1, true)
-                statTick(5, 2)
-                showMessage("used: ${item.title}")
+                if (state.enemyHP.current == 0) {
+                    showMessage("enemy is dead")
+                } else if (staminaReduce(type.stat.stamina)) {
+                    val newItem = item.copy(type = type.copy(stat = type.stat.copy(durability = type.stat.durability.copy(current = type.stat.durability.current-1))))
+                    if (type.stat.durability.current > 1) addItemToInventory(newItem, 1, true)
+                    removeItemFromInventory(item, 1, true)
+                    attackEnemy(type.stat.attack)
+                    statTick(5, 2, 5)
+                    showMessage("used: ${item.title}")
+                }
             }
+        }
+    }
+
+    fun attackEnemy(amount: Int) {
+        val enemyHP = state.enemyHP.current-amount
+        reduce {
+            it.copy(
+                enemyHP = it.enemyHP.copy(
+                    current = if (enemyHP >= 0) enemyHP else 0
+                )
+            )
+        }
+        if (state.enemyHP.current == 0) {
+            val random = (Math.random()*(Prefabs.entries.size-1)).toInt()
+            val itemToAdd = Prefabs.entries[random].item
+            addItemToInventory(itemToAdd, 1)
+        }
+    }
+
+    fun staminaReduce(amount: Int): Boolean {
+        val staminaToReduce = state.character.stamina.value.current-amount
+        if (staminaToReduce >= 0) {
+            reduce {
+                it.copy(
+                    character = it.character.copy(
+                        stamina = it.character.stamina.copy(value = it.character.stamina.value.copy(current = it.character.stamina.value.current-amount) )
+                    )
+                )
+            }
+            return true
+        } else {
+            showMessage("not enough stamina")
+            return false
         }
     }
 
