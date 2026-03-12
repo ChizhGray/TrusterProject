@@ -63,7 +63,7 @@ fun MainScreen(vm: TrusterViewModel) {
                 )
                 .padding(20.dp)
         ) {
-            items(itemGroups) { item ->
+            items(itemGroups.sortedBy { it }) { item ->
                 val dropDownState = remember { mutableStateOf(false) }
                 val filtered = vm.state.inventory.filter { it.key.title == item }
                 val sum = filtered.values.sum()
@@ -82,7 +82,15 @@ fun MainScreen(vm: TrusterViewModel) {
                             filtered.keys.firstOrNull()?.let {
                                 CustomText(it.description, textStyle = TextStyle(fontSize = 8.sp))
                             }
-                            filtered.forEach { group ->
+                            filtered.toSortedMap(comparator = compareBy {
+                                when(it.type) {
+                                    is ItemType.Armor -> it.type.stat.durability.current
+                                    is ItemType.Food -> it.title
+                                    ItemType.Gold -> it.title
+                                    is ItemType.Potion -> it.type.stat.potionType.name
+                                    is ItemType.Weapon -> it.type.stat.durability.current
+                                }
+                            }).forEach { group ->
                                 val item = group.key
                                 repeat(group.value) {
                                     when(val type = item.type) {
