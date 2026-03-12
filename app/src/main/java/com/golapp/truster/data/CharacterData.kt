@@ -8,7 +8,8 @@ data class CharacterData(
     val stamina: CharacterStat,
     val trist: CharacterStat,
     val hunger: CharacterStat,
-    val exp: CharacterStat
+    val exp: CharacterStat,
+    val equippedItem: InventoryItem?
 )
 
 data class CharacterStat(

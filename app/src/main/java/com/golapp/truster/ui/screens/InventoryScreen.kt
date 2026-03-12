@@ -1,19 +1,22 @@
-package com.golapp.truster.ui
+package com.golapp.truster.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.runtime.Composable
@@ -22,22 +25,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.PopupProperties
-import com.golapp.truster.data.InventoryItem
 import com.golapp.truster.data.ItemType
 import com.golapp.truster.model.TrusterViewModel
+import com.golapp.truster.ui.widgets.CustomButton
 import com.golapp.truster.ui.widgets.CustomText
 import com.golapp.truster.ui.widgets.ProgressBarItem
 
 @Composable
-fun MainScreen(vm: TrusterViewModel) {
+fun InventoryScreen(vm: TrusterViewModel) {
     Column(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -77,10 +79,10 @@ fun MainScreen(vm: TrusterViewModel) {
                         .padding(2.dp)
                 ) {
                     CustomText("$item ($sum)", textStyle = TextStyle(fontSize = 10.sp))
-                    DropdownMenu(dropDownState.value, { dropDownState.value = false }, containerColor = Color.Gray) {
-                        Column(Modifier.padding(5.dp).width(100.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    DropdownMenu(dropDownState.value, modifier = Modifier.fillMaxWidth(.5f), onDismissRequest = { dropDownState.value = false }, containerColor = Color.Gray) {
+                        Column(Modifier.padding(5.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             filtered.keys.firstOrNull()?.let {
-                                CustomText(it.description, textStyle = TextStyle(fontSize = 8.sp))
+                                CustomText(it.description, modifier = Modifier.fillMaxWidth(), textStyle = TextStyle(fontSize = 8.sp))
                             }
                             filtered.toSortedMap(comparator = compareBy {
                                 when(it.type) {
@@ -94,10 +96,41 @@ fun MainScreen(vm: TrusterViewModel) {
                                 val item = group.key
                                 repeat(group.value) {
                                     when(val type = item.type) {
-                                        is ItemType.Weapon -> ProgressBarItem(type.stat.durability, Color.Green,
-                                            Modifier.fillMaxWidth().clickable { vm.useItem(item); dropDownState.value = false })
-                                        else -> { CustomText("use", modifier =
-                                            Modifier.fillMaxWidth().clickable { vm.useItem(item); dropDownState.value = false })
+                                        is ItemType.Weapon -> {
+                                            Box() {
+                                                Column {
+                                                    ProgressBarItem(
+                                                        type.stat.durability,
+                                                        Color.Green,
+                                                        Modifier.fillMaxWidth()
+                                                    )
+                                                    Row {
+                                                        CustomButton("remove", modifier = Modifier.fillMaxWidth(.5f)) {
+                                                            vm.removeItemFromInventory(item, 1)
+                                                        }
+                                                        CustomButton("equip", modifier = Modifier.fillMaxWidth()) {
+                                                            vm.equipWeapon(item)
+                                                            dropDownState.value = false
+                                                        }
+                                                    }
+                                                }
+                                                if (item == vm.state.character.equippedItem) {
+                                                    Box(Modifier.size(5.dp).clip(CircleShape).background(Color.Red).align(
+                                                        Alignment.TopEnd))
+                                                }
+                                            }
+
+                                        }
+                                        else -> {
+                                            Row() {
+                                                CustomButton("remove", modifier = Modifier.fillMaxWidth(.5f)) {
+                                                    vm.removeItemFromInventory(item, 1)
+                                                }
+                                                CustomButton("use", modifier = Modifier.fillMaxWidth()) {
+                                                    vm.useItem(item)
+                                                    dropDownState.value = false
+                                                }
+                                            }
                                         }
                                     }
                                 }

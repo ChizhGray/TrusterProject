@@ -6,12 +6,22 @@ data class InventoryItem(
     val description: String
 )
 
+data class Enemy(
+    val name: String,
+    val hp: Durability,
+    val attack: Int,
+    val exp: Int
+)
+
 data class Durability(
     val current: Int,
     val max: Int
 ) {
     override fun toString(): String {
         return "$current/$max"
+    }
+    companion object {
+        fun set(value: Int) = Durability(value, value)
     }
 }
 

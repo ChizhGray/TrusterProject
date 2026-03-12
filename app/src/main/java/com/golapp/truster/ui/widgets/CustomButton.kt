@@ -10,15 +10,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.golapp.truster.ui.theme.DividerD
 import com.golapp.truster.ui.theme.DividerL
 
 @Composable
-fun CustomButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun CustomButton(text: String, modifier: Modifier = Modifier, color: Color? = null, onClick: () -> Unit) {
     Box(
         modifier = modifier
-            .background(DividerL, RoundedCornerShape(4.dp))
+            .background(color ?: DividerL, RoundedCornerShape(4.dp))
             .clip(RoundedCornerShape(4.dp))
             .clickable { onClick() }
             .border(1.dp, DividerD, RoundedCornerShape(4.dp))

@@ -1,6 +1,6 @@
 package com.golapp.truster.data
 
-enum class Prefabs(val item: InventoryItem) {
+enum class ItemsPrefabs(val item: InventoryItem) {
     Branch(
         InventoryItem(
             "Branch",

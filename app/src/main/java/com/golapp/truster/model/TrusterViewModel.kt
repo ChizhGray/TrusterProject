@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.golapp.truster.data.*
+import com.golapp.truster.functions.getChance
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -22,12 +23,12 @@ class TrusterViewModel: ViewModel() {
         }
     }
     init {
-        Prefabs.entries.forEach { prefab ->
-            addItemToInventory(prefab.item, 1, true)
+        repeat(6) {
+            if (getChance(60)) addItemToInventory(ItemsPrefabs.entries.random().item, 1, true)
         }
     }
 
-    fun statTick(trist: Int, hunger: Int, enemyAttack: Int) {
+    fun statTick(trist: Int, hunger: Int, enemyAttack: Int?) {
         val calcTrist = state.character.trist.value.current-trist
         val tristToReduce = if (calcTrist <= 0) 0 else calcTrist
 
@@ -45,7 +46,7 @@ class TrusterViewModel: ViewModel() {
 
         val healthByHungerNew = if (hungerToReduce == 0) 2 else 0
         val healthByTristNew = if (tristToReduce == 0) 5 else 0
-        val healthToReduceTotal = healthByTristNew + healthByHungerNew + enemyAttack
+        val healthToReduceTotal = healthByTristNew + healthByHungerNew + (enemyAttack ?: 0)
 
         if (healthToReduceTotal!=0) {
             reduce {
@@ -145,33 +146,54 @@ class TrusterViewModel: ViewModel() {
                 showMessage("used: ${item.title}")
             }
             is ItemType.Weapon -> {
-                if (state.enemyHP.current == 0) {
-                    showMessage("enemy is dead")
-                } else if (staminaReduce(type.stat.stamina)) {
-                    val newItem = item.copy(type = type.copy(stat = type.stat.copy(durability = type.stat.durability.copy(current = type.stat.durability.current-1))))
-                    if (type.stat.durability.current > 1) addItemToInventory(newItem, 1, true)
-                    removeItemFromInventory(item, 1, true)
-                    attackEnemy(type.stat.attack)
-                    statTick(5, 2, 5)
-                    showMessage("used: ${item.title}")
-                }
+                state.enemy?.let { enemy ->
+                    if (enemy.hp.current == 0) {
+                        showMessage("enemy is dead")
+                    } else if (staminaReduce(type.stat.stamina)) {
+                        if (type.stat.durability.current-1 >= 0) {
+                            reduce {
+                                it.copy(
+                                    inventory = it.inventory.mapKeys {
+                                        if (it.key == item) {
+                                            item.copy(
+                                                type = type.copy(
+                                                    stat = type.stat.copy(
+                                                        durability = type.stat.durability.copy(
+                                                            current = type.stat.durability.current-1)
+                                                    )
+                                                )
+                                            )
+                                        } else it.key
+                                    }
+                                )
+                            }
+                            attackEnemy(type.stat.attack)
+                            statTick(5, 2, enemy.attack)
+                            showMessage("used: ${item.title}")
+                        } else {
+                            showMessage("weapon is broken")
+                        }
+                    }
+                } ?: showMessage("no target to attack")
             }
         }
     }
 
-    fun attackEnemy(amount: Int) {
-        val enemyHP = state.enemyHP.current-amount
-        reduce {
-            it.copy(
-                enemyHP = it.enemyHP.copy(
-                    current = if (enemyHP >= 0) enemyHP else 0
+    private fun attackEnemy(amount: Int) {
+        state.enemy?.let { enemy ->
+            val enemyHP = enemy.hp.current-amount
+            reduce {
+                it.copy(
+                    enemy = it.enemy?.copy(
+                        hp = enemy.hp.copy(
+                            current = if (enemyHP >= 0) enemyHP else 0
+                        )
+                    )
                 )
-            )
-        }
-        if (state.enemyHP.current == 0) {
-            val random = (Math.random()*(Prefabs.entries.size-1)).toInt()
-            val itemToAdd = Prefabs.entries[random].item
-            addItemToInventory(itemToAdd, 1)
+            }
+            if (enemy.hp.current == 0) {
+                addItemToInventory(ItemsPrefabs.entries.random().item, 1)
+            }
         }
     }
 
@@ -196,5 +218,20 @@ class TrusterViewModel: ViewModel() {
         state.inventory.ifEmpty { return }
         reduce { it.copy(inventory = emptyMap()) }
         Log.i("clearInventory", state.getInventoryTexted())
+    }
+
+    fun editEnemy(enemy: Enemy?) {
+        reduce { it.copy(enemy = enemy) }
+        Log.i("editEnemy", "enemy set $enemy")
+    }
+
+    fun equipWeapon(weapon: InventoryItem?) {
+        reduce {
+            it.copy(
+                character = it.character.copy(
+                    equippedItem = weapon
+                )
+            )
+        }
     }
 }

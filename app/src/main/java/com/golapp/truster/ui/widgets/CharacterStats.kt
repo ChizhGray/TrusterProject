@@ -13,12 +13,20 @@ import androidx.compose.ui.unit.sp
 import com.golapp.truster.data.CharacterData
 
 @Composable
-fun CharacterStats(stats: CharacterData) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        listOf(stats.health, stats.stamina, stats.hunger, stats.trist, stats.exp).forEach { stat ->
-            Row() {
-                CustomText(stat.title, TextStyle(fontSize = 8.sp), modifier = Modifier.width(50.dp))
-                ProgressBarItem(stat.value, stat.color, Modifier.fillMaxWidth(.5f))
+fun CharacterStats(stats: CharacterData, unequipWeapon: () -> Unit) {
+    Row() {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            listOf(stats.health, stats.stamina, stats.hunger, stats.trist, stats.exp).forEach { stat ->
+                Row {
+                    CustomText(stat.title, TextStyle(fontSize = 8.sp), modifier = Modifier.width(50.dp))
+                    ProgressBarItem(stat.value, stat.color, Modifier.fillMaxWidth(.5f))
+                }
+            }
+        }
+        stats.equippedItem?.let {
+            Column {
+                CustomText("equipped: ${it.title}")
+                CustomButton("unequip") { unequipWeapon() }
             }
         }
     }
